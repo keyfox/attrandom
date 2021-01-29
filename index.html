@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Attrandom</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://unpkg.com/vue@3.0.5"></script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="app">
+        <div
+          class="column fill"
+          :class="[{'ready-to-pick': candidatesCount >= 1}]"
+          id="text-picker"
+          v-on="candidatesCount >= 1 ? {click: roll} : {}"
+        >
+          <template v-if="candidatesCount === 0">
+            <p class="emoji-text">📜</p>
+            <p>Drag a text file here.</p>
+            <p class="error" v-if="itemsDropped">
+              Some entries have been dropped, but no text found.
+            </p>
+          </template>
+          <template v-else>
+            <div id="picked-text">
+              <p id="line-number">Line #{{ pickedLineIndex+1 }}</p>
+              <p
+                id="picked-text-content"
+                :class="[{'empty-line': pickedText === ''}]"
+              >
+                <template v-if="pickedText === ''">(empty line)</template>
+                <template v-else>{{ pickedText }}</template>
+              </p>
+            </div>
+            <p class="emoji-text" id="die-icon">🎲</p>
+          </template>
+        </div>
+        <div id="overlay" v-if="dragHovering || loadingDroppedItem">
+          <p v-if="dragHovering">Ready to Drop!</p>
+          <div v-if="loadingDroppedItem">
+            <div class="loading lds-dual-ring"></div>
+            <p>Loading the text file...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./code.js"></script>
+  </body>
+</html>
