@@ -23,30 +23,28 @@ async function readTextFile(entry) {
   });
 }
 
+function randomIntExcept(max, except) {
+  let picked = null;
+  do {
+    picked = Math.floor(Math.random() * max);
+  } while (picked === except && max >= 2);
+  return picked;
+}
+
 function hasTextExt(filename) {
   return true;
-  // return filename.split(".").pop().toLowerCase() === "txt";
 }
 
 let dragEventTarget = null;
-let lastPickedIndex = -1;
-const HISTORY_MAX_LENGTH = 32;
-const IMAGE_CACHE_MAX_LENGTH = HISTORY_MAX_LENGTH + 1;
-let imagesCreated = 0;
-const DEBOUNCE_DELAY = 125;
-let loadTimeTimer;
+const FILES_COUNT_WARN_THRESHOLD = 10;
 
 const AttrandomApp = {
   data() {
     return {
       // dropped text files
-      textFileEntries: null,
-      // a content of picked line
-      pickedText: null,
-      // index of picked line
-      pickedLineIndex: null,
-      // candidates
-      lines: null,
+      sources: null,
+      // picked lines
+      pickedLines: null,
       // indicates whether files or directories are being dragged.
       dragHovering: false,
       // indicates whether the app is searching for image files.
@@ -78,13 +76,21 @@ const AttrandomApp = {
       }
       await Promise.all(promises);
       // extract text files
-      this.textFileEntries = entries.filter((e) => hasTextExt(e.name));
-      if (this.textFileEntries.length === 0) {
-        this.lines = null;
-      } else {
-        // we process just one file for now
-        this.lines = await readTextFile(this.textFileEntries[0]);
-        // pick a line from the text once loaded
+      const textFileEntries = entries.filter((e) => hasTextExt(e.name));
+      if (
+        textFileEntries.length < FILES_COUNT_WARN_THRESHOLD ||
+        confirm(
+          textFileEntries.length + " files are about to be loaded. Continue?"
+        )
+      ) {
+        this.sources = (
+          await Promise.all(textFileEntries.map(readTextFile))
+        ).map((lines, i) => ({
+          name: textFileEntries[i].name,
+          path: textFileEntries[i].name,
+          lines,
+        }));
+        this.pickedLines = null;
         this.roll();
       }
       this.loadingDroppedItem = false;
@@ -97,30 +103,31 @@ const AttrandomApp = {
     });
   },
   methods: {
-    roll() {
-      // aliasing
-      const lines = this.lines;
-
-      // pick an index taking consecutive selection into account
-      const index = (() => {
-        let i = null;
-        do {
-          i = Math.floor(Math.random() * lines.length);
-        } while (i === lastPickedIndex && lines.length >= 2);
-        return i;
-      })();
-      lastPickedIndex = index;
-
-      this.pickedLineIndex = index;
-      this.pickedText = lines[index];
+    roll(target) {
+      this.pickedLines = this.sources.map((e, i) => {
+        if (typeof target !== "undefined" && target !== i) {
+          // preserve current one as this is not a target
+          return this.pickedLines[i];
+        }
+        const entireLen = e.lines.length;
+        const lineIndex = randomIntExcept(
+          entireLen,
+          this.pickedLines && this.pickedLines[i].lineIndex
+        );
+        return {
+          source: e,
+          lineIndex,
+          content: e.lines[lineIndex],
+        };
+      });
     },
   },
   computed: {
-    candidatesCount() {
-      return this.itemsDropped && this.lines ? this.lines.length : 0;
+    filesCount() {
+      return this.itemsDropped ? this.sources.length : 0;
     },
     itemsDropped() {
-      return this.textFileEntries !== null;
+      return this.sources !== null;
     },
   },
 };

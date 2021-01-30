@@ -28,16 +28,20 @@ body {
 div#app {
   display: flex;
   flex-direction: row;
+  align-items: center;
 }
 
-/* IMAGE PREVIEW */
+/* TEXT PICKER */
 
 div#text-picker {
-  align-items: center;
-  justify-content: center;
   padding: 16px;
   font-size: 24px;
   color: #30322f;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  text-align: center;
 }
 div#text-picker.ready-to-pick {
   cursor: pointer;
@@ -57,20 +61,38 @@ div#text-picker p.emoji-text {
   margin: 0 auto;
 }
 
-/* IMAGE PREVIEW - IMAGE SUMMARY */
+/* PICKED TEXT */
 
-div#picked-text {
-  display: inline-block;
-  text-align: center;
+div.text-file {
+  display: flex;
+  width: 100%;
+  margin: 8px 0;
+}
+div.text-file .die-icon {
+  font-size: 100%;
+  visibility: hidden;
+}
+div.text-file:hover .die-icon {
+  visibility: visible;
+}
+div.picked-text {
   background: #f4d8a1;
   color: black;
-  margin: 0 auto 8px;
+  flex: 1;
   padding: 6px 15px;
+  text-align: left;
 }
-div#picked-text p#line-number {
+div.picked-text p.summary {
   font-size: 16px;
 }
-p#picked-text-content.empty-line {
+div.picked-text p.content {
+  display: inline-block;
+  text-align: center;
+  margin: 0 auto 8px;
+  height: 96px;
+  overflow-y: auto;
+}
+div.picked-text p.content.empty-line {
   color: gray;
   font-style: italic;
 }

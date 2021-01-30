@@ -11,36 +11,41 @@
       <div id="app">
         <div
           class="column fill"
-          :class="[{'ready-to-pick': candidatesCount >= 1}]"
+          :class="[{'ready-to-pick': filesCount >= 1}]"
           id="text-picker"
-          v-on="candidatesCount >= 1 ? {click: roll} : {}"
         >
-          <template v-if="candidatesCount === 0">
-            <p class="emoji-text">📜</p>
-            <p>Drag a text file here.</p>
+          <template v-if="filesCount === 0">
+            <p class="emoji-text">📜📜📜</p>
+            <p>Drag text file(s) here.</p>
             <p class="error" v-if="itemsDropped">
               Some entries have been dropped, but no text found.
             </p>
           </template>
           <template v-else>
-            <div id="picked-text">
-              <p id="line-number">Line #{{ pickedLineIndex + 1 }}</p>
-              <p
-                id="picked-text-content"
-                :class="[{'empty-line': pickedText === ''}]"
-              >
-                <template v-if="pickedText === ''">(empty line)</template>
-                <template v-else>{{ pickedText }}</template>
-              </p>
+            <div
+              class="text-file"
+              v-for="(p, index) in pickedLines"
+              :key="index"
+              v-on:click="roll(index)"
+            >
+              <p class="emoji-text die-icon">🎲</p>
+              <div class="picked-text">
+                <p class="summary">
+                  {{ p.source.path }}, Line #{{ p.lineIndex + 1 }}:
+                </p>
+                <p class="content" :class="[{'empty-line': p.content === ''}]">
+                  <template v-if="p.content === ''">(empty line)</template>
+                  <template v-else>{{ p.content }}</template>
+                </p>
+              </div>
             </div>
-            <p class="emoji-text" id="die-icon">🎲</p>
           </template>
         </div>
         <div id="overlay" v-if="dragHovering || loadingDroppedItem">
           <p v-if="dragHovering">Ready to Drop!</p>
           <div v-if="loadingDroppedItem">
             <div class="loading lds-dual-ring"></div>
-            <p>Loading the text file...</p>
+            <p>Loading text file(s)...</p>
           </div>
         </div>
       </div>
